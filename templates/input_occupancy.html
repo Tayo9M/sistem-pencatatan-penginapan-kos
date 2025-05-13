@@ -1,0 +1,186 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 mb-4">
+            <i class="fas fa-bed"></i> Input Data Hunian
+        </h1>
+        <p class="lead">Gunakan form ini untuk mencatat data hunian kamar per bulan.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-pencil-alt"></i> Form Input Hunian</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('input_occupancy') }}">
+                    <div class="mb-3">
+                        <label for="month" class="form-label">Bulan (YYYY-MM)</label>
+                        <input type="text" class="form-control" id="month" name="month" placeholder="2023-05" pattern="[0-9]{4}-[0-9]{2}" required>
+                        <small class="form-text text-muted">Format: Tahun-Bulan (YYYY-MM)</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="property_id" class="form-label">Lokasi</label>
+                        <select class="form-select" id="property_id" name="property_id" required>
+                            <option value="" selected disabled>Pilih lokasi...</option>
+                            {% for property in properties %}
+                            <option value="{{ property.id }}">{{ property.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="room_type" class="form-label">Tipe Kamar</label>
+                        <select class="form-select" id="room_type" name="room_type" required>
+                            <option value="" selected disabled>Pilih tipe kamar...</option>
+                            <option value="Standard">Standard</option>
+                            <option value="Eksekutif">Eksekutif</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_occupied" name="is_occupied">
+                        <label class="form-check-label" for="is_occupied">Kamar Terisi</label>
+                    </div>
+                    
+                    <div class="mb-3" id="tenant_div" style="display: none;">
+                        <label for="tenant_name" class="form-label">Nama Penyewa</label>
+                        <input type="text" class="form-control" id="tenant_name" name="tenant_name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="monthly_rate" class="form-label">Tarif Bulanan (Rp)</label>
+                        <input type="number" class="form-control" id="monthly_rate" name="monthly_rate" min="0" required>
+                        <small class="form-text text-muted">Masukkan tarif bulanan tanpa tanda pemisah ribuan (cth: 500000)</small>
+                    </div>
+
+                    <div class="mb-3" id="payment_status_div" style="display: none;">
+                        <label for="payment_status" class="form-label">Status Pembayaran</label>
+                        <select class="form-select" id="payment_status" name="payment_status">
+                            <option value="unpaid">Belum Dibayar</option>
+                            <option value="paid">Lunas</option>
+                            <option value="late">Terlambat</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="payment_months_div" style="display: none;">
+                        <label for="payment_months" class="form-label">Jumlah Bulan Pembayaran</label>
+                        <select class="form-select" id="payment_months" name="payment_months">
+                            <option value="1">1 Bulan</option>
+                            <option value="2">2 Bulan</option>
+                            <option value="3">3 Bulan</option>
+                            <option value="6">6 Bulan</option>
+                            <option value="12">12 Bulan</option>
+                        </select>
+                        <small class="form-text text-muted">Berapa bulan ke depan yang akan dibayar</small>
+                    </div>
+
+                    <div class="mb-3" id="payment_due_date_div" style="display: none;">
+                        <label for="payment_due_date" class="form-label">Tanggal Jatuh Tempo</label>
+                        <input type="date" class="form-control" id="payment_due_date" name="payment_due_date">
+                        <small class="form-text text-muted">Tanggal terakhir untuk pembayaran sewa</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Catatan</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Simpan Data
+                        </button>
+                        <a href="{{ url_for('manage_occupancy') }}" class="btn btn-secondary mt-2">
+                            <i class="fas fa-list"></i> Lihat dan Kelola Data Hunian
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4 border-0 shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Petunjuk</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Tipe Kamar:</strong></p>
+                <ul>
+                    <li><strong>Standard:</strong> Kamar ukuran standar, fasilitas dasar</li>
+                    <li><strong>Eksekutif:</strong> Kamar premium dengan fasilitas lengkap</li>
+                </ul>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Data ini akan digunakan untuk membuat statistik dan laporan bulanan.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Statistik</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">Lihat statistik hunian kamar berdasarkan tipe:</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('room_stats') }}" class="btn btn-outline-success">
+                        <i class="fas fa-chart-bar"></i> Statistik Kamar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get references to form elements
+    const isOccupiedCheckbox = document.getElementById('is_occupied');
+    const tenantDiv = document.getElementById('tenant_div');
+    const paymentStatusDiv = document.getElementById('payment_status_div');
+    const paymentMonthsDiv = document.getElementById('payment_months_div');
+    const paymentDueDateDiv = document.getElementById('payment_due_date_div');
+    
+    function updateOccupancyFields() {
+        if (isOccupiedCheckbox.checked) {
+            tenantDiv.style.display = 'block';
+            paymentStatusDiv.style.display = 'block';
+            paymentMonthsDiv.style.display = 'block';
+            paymentDueDateDiv.style.display = 'block';
+        } else {
+            tenantDiv.style.display = 'none';
+            paymentStatusDiv.style.display = 'none';
+            paymentMonthsDiv.style.display = 'none';
+            paymentDueDateDiv.style.display = 'none';
+        }
+    }
+    
+    isOccupiedCheckbox.addEventListener('change', updateOccupancyFields);
+    
+    // Set current month as default
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    document.getElementById('month').value = `${year}-${month}`;
+    
+    // Set default due date to today + 10 days
+    const dueDateInput = document.getElementById('payment_due_date');
+    const dueDate = new Date(today);
+    dueDate.setDate(dueDate.getDate() + 10); // Add 10 days for due date
+    const dueDay = String(dueDate.getDate()).padStart(2, '0');
+    const dueMonth = String(dueDate.getMonth() + 1).padStart(2, '0');
+    const dueYear = dueDate.getFullYear();
+    dueDateInput.value = `${dueYear}-${dueMonth}-${dueDay}`;
+    
+    // Initialize occupancy fields visibility
+    updateOccupancyFields();
+});
+</script>
+{% endblock %}

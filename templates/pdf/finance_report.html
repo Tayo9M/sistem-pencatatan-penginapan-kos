@@ -1,0 +1,69 @@
+{% extends "pdf/pdf_layout.html" %}
+
+{% block content %}
+<h2>Laporan Keuangan</h2>
+<p>Periode: {% if start_date == end_date %}{{ start_date.strftime('%d-%m-%Y') }}{% else %}{{ start_date.strftime('%d-%m-%Y') }} s/d {{ end_date.strftime('%d-%m-%Y') }}{% endif %}</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Tanggal</th>
+            <th>Jenis</th>
+            <th>Kategori</th>
+            <th>Jumlah</th>
+            <th>Keterangan</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in finance_data %}
+        <tr>
+            <td>{{ record.transaction_date.strftime('%d-%m-%Y') }}</td>
+            <td>{{ 'Pemasukan' if record.transaction_type == 'income' else 'Pengeluaran' }}</td>
+            <td>{{ record.category }}</td>
+            <td style="text-align: right;">Rp {{ "{:,}".format(record.amount).replace(',', '.') }}</td>
+            <td>{{ record.description }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="summary">
+    <h3>Ringkasan Keuangan</h3>
+    <table>
+        <tr>
+            <th>Total Pemasukan</th>
+            <td style="text-align: right;">Rp {{ "{:,}".format(summary_data.total_income).replace(',', '.') }}</td>
+        </tr>
+        <tr>
+            <th>Total Pengeluaran</th>
+            <td style="text-align: right;">Rp {{ "{:,}".format(summary_data.total_expense).replace(',', '.') }}</td>
+        </tr>
+        <tr>
+            <th>Keuntungan Bersih</th>
+            <td style="text-align: right; {% if summary_data.net_profit < 0 %}color: red;{% endif %}">
+                Rp {{ "{:,}".format(summary_data.net_profit).replace(',', '.') }}
+            </td>
+        </tr>
+    </table>
+    
+    <h4>Kategori Pemasukan</h4>
+    <table>
+        {% for category, amount in summary_data.income_by_category.items() %}
+        <tr>
+            <th>{{ category }}</th>
+            <td style="text-align: right;">Rp {{ "{:,}".format(amount).replace(',', '.') }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <h4>Kategori Pengeluaran</h4>
+    <table>
+        {% for category, amount in summary_data.expense_by_category.items() %}
+        <tr>
+            <th>{{ category }}</th>
+            <td style="text-align: right;">Rp {{ "{:,}".format(amount).replace(',', '.') }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

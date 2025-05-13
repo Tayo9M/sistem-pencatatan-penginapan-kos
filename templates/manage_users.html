@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h5 class="m-0 font-weight-bold">Manajemen Pengguna</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Username</th>
+                        <th>Peran</th>
+                        <th>Lokasi</th>
+                        <th>Terdaftar</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>
+                            <span class="badge {% if user.role == 'admin' %}bg-danger{% elif user.role == 'manager' %}bg-primary{% elif user.role == 'staff' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ user.role|capitalize }}
+                            </span>
+                        </td>
+                        <td>{{ user.location or '-' }}</td>
+                        <td>{{ user.created_at.strftime('%d-%m-%Y') }}</td>
+                        <td>
+                            <a href="{{ url_for('change_user_password', user_id=user.id) }}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-key"></i> Ubah Password
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

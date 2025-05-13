@@ -1,0 +1,82 @@
+{% extends "pdf/pdf_layout.html" %}
+
+{% block content %}
+<h2>Laporan Statistik Kamar</h2>
+<p>Periode: {{ month }}</p>
+
+<div class="summary">
+    <h3>Ringkasan Okupansi</h3>
+    <table>
+        <tr>
+            <th>Total Kamar</th>
+            <td>{{ stats_data.total_rooms }}</td>
+        </tr>
+        <tr>
+            <th>Kamar Terisi</th>
+            <td>{{ stats_data.occupied_rooms }}</td>
+        </tr>
+        <tr>
+            <th>Kamar Kosong</th>
+            <td>{{ stats_data.vacant_rooms }}</td>
+        </tr>
+        <tr>
+            <th>Tingkat Hunian</th>
+            <td>{{ "%.1f"|format(stats_data.occupancy_rate) }}%</td>
+        </tr>
+    </table>
+</div>
+
+<h3>Detail Status Kamar</h3>
+<table>
+    <thead>
+        <tr>
+            <th>No. Kamar</th>
+            <th>Tipe Kamar</th>
+            <th>Tarif Bulanan</th>
+            <th>Status</th>
+            <th>Penghuni</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for room in stats_data.room_details %}
+        <tr>
+            <td>{{ room.number }}</td>
+            <td>{{ room.room_type }}</td>
+            <td style="text-align: right;">Rp {{ "{:,}".format(room.monthly_rate).replace(',', '.') }}</td>
+            <td>{{ "Terisi" if room.status == "occupied" else "Kosong" }}</td>
+            <td>{{ room.tenant_name or "-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="summary">
+    <h3>Statistik Tipe Kamar</h3>
+    <table>
+        {% for room_type, count in stats_data.room_types.items() %}
+        <tr>
+            <th>{{ room_type }}</th>
+            <td>{{ count }} kamar</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="summary">
+    <h3>Status Pembayaran</h3>
+    <table>
+        <tr>
+            <th>Kamar dengan Pembayaran Lunas</th>
+            <td>{{ stats_data.payment_status.paid }}</td>
+        </tr>
+        <tr>
+            <th>Kamar dengan Pembayaran Terlambat</th>
+            <td>{{ stats_data.payment_status.late }}</td>
+        </tr>
+        <tr>
+            <th>Kamar dengan Pembayaran Belum Lunas</th>
+            <td>{{ stats_data.payment_status.unpaid }}</td>
+        </tr>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 mb-4">
+            <i class="fas fa-file-pdf"></i> Preview PDF
+        </h1>
+        <p class="lead">Laporan dalam format PDF siap diunduh. Klik tombol di bawah untuk mengunduh.</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow">
+    <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-download"></i> Download PDF</h5>
+            <a href="{{ pdf_url }}" class="btn btn-light btn-sm" download="laporan.pdf">
+                <i class="fas fa-file-download"></i> Download PDF
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <p>Silakan klik tombol <strong>Download PDF</strong> untuk mengunduh laporan.</p>
+        <p>Jika unduhan tidak dimulai secara otomatis, Anda juga dapat melihat preview laporan di bawah ini (dalam format HTML):</p>
+        
+        <div class="embed-responsive" style="height: 800px;">
+            <iframe src="{{ pdf_url }}" class="embed-responsive-item" style="width: 100%; height: 100%; border: 1px solid #ddd;"></iframe>
+        </div>
+        
+        <div class="mt-4 alert alert-info">
+            <h5 class="mb-2"><i class="fas fa-info-circle"></i> Informasi untuk pengguna HP</h5>
+            <p>Jika PDF tidak muncul di browser HP Anda, silakan gunakan link berikut:</p>
+            <div class="d-grid gap-2">
+                <a href="{{ pdf_url }}" class="btn btn-info" download>
+                    <i class="fas fa-file-download"></i> Download PDF Langsung
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{{ back_url }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </a>
+    </div>
+</div>
+{% endblock %}

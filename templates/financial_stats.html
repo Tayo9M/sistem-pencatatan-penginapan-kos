@@ -1,0 +1,173 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 mb-4">
+            <i class="fas fa-chart-bar"></i> Statistik Keuangan
+        </h1>
+        {% if current_user.is_admin %}
+            <p class="lead">Grafik dan statistik tentang pendapatan dan pengeluaran semua properti.</p>
+        {% else %}
+            {% if properties|length == 1 %}
+                <p class="lead">Grafik dan statistik tentang pendapatan dan pengeluaran properti <strong>{{ properties[0].name }}</strong>.</p>
+            {% else %}
+                <p class="lead">Grafik dan statistik tentang pendapatan dan pengeluaran untuk {{ properties|length }} properti yang anda kelola.</p>
+                <ul>
+                    {% for property in properties %}
+                        <li><strong>{{ property.name }}</strong></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Form Ekspor PDF -->
+{% if current_user.is_admin %}
+<div class="card border-0 shadow mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-file-pdf"></i> Ekspor Statistik Keuangan ke PDF</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('export_financial_stats_pdf') }}" method="get" target="_blank">
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="form-group mb-3">
+                        <label for="property_id">Properti:</label>
+                        <select name="property_id" id="property_id" class="form-select">
+                            <option value="0">Semua Properti</option>
+                            {% for property in properties %}
+                                <option value="{{ property.id }}" {% if selected_property_id == property.id %}selected{% endif %}>{{ property.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group mb-3">
+                        <label for="year">Tahun:</label>
+                        <input type="number" id="year" name="year" class="form-control" 
+                               value="{{ year }}" min="2000" max="2100" required>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="d-flex w-100 gap-2 mb-3">
+                        <button type="submit" class="btn btn-success flex-fill">
+                            <i class="fas fa-download"></i> Unduh PDF
+                        </button>
+                        <button type="submit" class="btn btn-primary flex-fill" formaction="{{ url_for('export_financial_stats_pdf', preview='true') }}" formtarget="_blank">
+                            <i class="fas fa-eye"></i> Lihat PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- Income vs Expense Chart -->
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Perbandingan Pendapatan dan Pengeluaran Bulanan</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ income_expense_plot }}" alt="Income vs Expense Chart" class="img-fluid">
+                </div>
+                
+                <div class="table-responsive mt-4">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Bulan</th>
+                                <th>Pendapatan</th>
+                                <th>Pengeluaran</th>
+                                <th>Keuntungan</th>
+                                <th>Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in range(months|length) %}
+                            <tr>
+                                <td>{{ months[i] }}</td>
+                                <td class="text-success">{{ income_by_month[i]|rupiah }}</td>
+                                <td class="text-warning">{{ expense_by_month[i]|rupiah }}</td>
+                                <td class="{% if income_by_month[i] - expense_by_month[i] > 0 %}text-info{% else %}text-danger{% endif %}">
+                                    {{ (income_by_month[i] - expense_by_month[i])|rupiah }}
+                                </td>
+                                <td>
+                                    {% if income_by_month[i] > 0 %}
+                                        {{ ((income_by_month[i] - expense_by_month[i]) / income_by_month[i] * 100)|round(1) }}%
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="table-active">
+                                <td><strong>Total</strong></td>
+                                <td class="text-success"><strong>{{ income_by_month|sum|rupiah }}</strong></td>
+                                <td class="text-warning"><strong>{{ expense_by_month|sum|rupiah }}</strong></td>
+                                <td class="{% if income_by_month|sum - expense_by_month|sum > 0 %}text-info{% else %}text-danger{% endif %}">
+                                    <strong>{{ (income_by_month|sum - expense_by_month|sum)|rupiah }}</strong>
+                                </td>
+                                <td>
+                                    {% if income_by_month|sum > 0 %}
+                                        <strong>{{ ((income_by_month|sum - expense_by_month|sum) / income_by_month|sum * 100)|round(1) }}%</strong>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Income by Category Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Pendapatan per Kategori</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ income_category_plot }}" alt="Income by Category Chart" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Expense by Category Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow h-100">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Pengeluaran per Kategori</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ expense_category_plot }}" alt="Expense by Category Chart" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 text-center">
+        <a href="{{ url_for('input_finance') }}" class="btn btn-primary me-2">
+            <i class="fas fa-plus-circle"></i> Input Data Keuangan
+        </a>
+        <a href="{{ url_for('room_stats') }}" class="btn btn-success">
+            <i class="fas fa-chart-bar"></i> Lihat Statistik Kamar
+        </a>
+    </div>
+</div>
+{% endblock %}

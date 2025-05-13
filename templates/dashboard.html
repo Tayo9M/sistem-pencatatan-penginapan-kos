@@ -1,0 +1,229 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 mb-4">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </h1>
+        <p class="lead">Selamat datang, {{ current_user.username }}!</p>
+        {% if current_user.is_admin %}
+            <p>Anda melihat data semua properti sebagai Administrator.</p>
+        {% else %}
+            {% if properties|length == 1 %}
+                <p>Anda melihat data properti <strong>{{ properties[0].name }}</strong>.</p>
+            {% else %}
+                <p>Anda melihat data dari {{ properties|length }} properti yang anda kelola:</p>
+                <ul>
+                    {% for property in properties %}
+                        <li><strong>{{ property.name }}</strong></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endif %}
+        <p>Berikut adalah ringkasan data untuk bulan ini.</p>
+    </div>
+</div>
+
+<!-- Dashboard Cards -->
+<div class="row mb-5 g-4">
+    <!-- Property Card -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card card-dashboard h-100 bg-dark">
+            <div class="card-body text-center">
+                <div class="display-4 mb-2">
+                    <i class="fas fa-building text-primary"></i>
+                </div>
+                <h5 class="card-title">Properti</h5>
+                <h2 class="display-6 fw-bold">{{ property_count }}</h2>
+                <p class="card-text text-muted">Total Properti</p>
+            </div>
+            <div class="card-footer bg-dark border-top border-secondary">
+                <a href="{{ url_for('input_occupancy') }}" class="btn btn-sm btn-outline-primary w-100">
+                    <i class="fas fa-plus-circle"></i> Kelola Properti
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Room Card -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card card-dashboard h-100 bg-dark">
+            <div class="card-body text-center">
+                <div class="display-4 mb-2">
+                    <i class="fas fa-door-open text-info"></i>
+                </div>
+                <h5 class="card-title">Kamar</h5>
+                <h2 class="display-6 fw-bold">{{ room_count }}</h2>
+                <p class="card-text text-muted">Total Kamar</p>
+            </div>
+            <div class="card-footer bg-dark border-top border-secondary">
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ occupancy_rate }}%"></div>
+                </div>
+                <small class="text-muted d-block mt-2">Tingkat Hunian: {{ occupancy_rate|round(1) }}%</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Income Card -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card card-dashboard h-100 bg-dark">
+            <div class="card-body text-center">
+                <div class="display-4 mb-2">
+                    <i class="fas fa-arrow-circle-up text-success"></i>
+                </div>
+                <h5 class="card-title">Pendapatan</h5>
+                <h2 class="display-6 fw-bold text-income">{{ income|rupiah }}</h2>
+                <p class="card-text text-muted">Bulan Ini</p>
+            </div>
+            <div class="card-footer bg-dark border-top border-secondary">
+                <a href="{{ url_for('input_finance') }}" class="btn btn-sm btn-outline-success w-100">
+                    <i class="fas fa-plus-circle"></i> Tambah Pendapatan
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Expense Card -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card card-dashboard h-100 bg-dark">
+            <div class="card-body text-center">
+                <div class="display-4 mb-2">
+                    <i class="fas fa-arrow-circle-down text-warning"></i>
+                </div>
+                <h5 class="card-title">Pengeluaran</h5>
+                <h2 class="display-6 fw-bold text-expense">{{ expense|rupiah }}</h2>
+                <p class="card-text text-muted">Bulan Ini</p>
+            </div>
+            <div class="card-footer bg-dark border-top border-secondary">
+                <a href="{{ url_for('input_finance') }}" class="btn btn-sm btn-outline-warning w-100">
+                    <i class="fas fa-plus-circle"></i> Tambah Pengeluaran
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profit Summary - Only visible for Admin -->
+{% if current_user.is_admin %}
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card bg-dark border-0 shadow-lg">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-9">
+                        <h4 class="mb-3">Ringkasan Keuntungan Bulan Ini</h4>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success bg-opacity-25 p-3 rounded me-3">
+                                        <i class="fas fa-plus-circle text-success fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 text-muted">Pendapatan</p>
+                                        <h5 class="fw-bold text-success mb-0">{{ income|rupiah }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-warning bg-opacity-25 p-3 rounded me-3">
+                                        <i class="fas fa-minus-circle text-warning fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 text-muted">Pengeluaran</p>
+                                        <h5 class="fw-bold text-warning mb-0">{{ expense|rupiah }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-info bg-opacity-25 p-3 rounded me-3">
+                                        <i class="fas fa-equals text-info fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 text-muted">Keuntungan</p>
+                                        <h5 class="fw-bold text-info mb-0">{{ profit|rupiah }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center mt-4 mt-md-0">
+                        <div class="display-1 {% if profit > 0 %}text-success{% elif profit < 0 %}text-danger{% else %}text-muted{% endif %}">
+                            {% if profit > 0 %}
+                                <i class="fas fa-smile"></i>
+                            {% elif profit < 0 %}
+                                <i class="fas fa-frown"></i>
+                            {% else %}
+                                <i class="fas fa-meh"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Links -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="mb-3"><i class="fas fa-link"></i> Akses Cepat</h4>
+    </div>
+    <!-- Quick Link Buttons -->
+    <div class="col-md-4 mb-3">
+        <a href="{{ url_for('input_occupancy') }}" class="btn btn-outline-light w-100 p-3 text-start">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-bed fa-2x me-3"></i>
+                <div>
+                    <h5 class="mb-0">Input Data Hunian</h5>
+                    <small class="text-muted">Catat data hunian kamar</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4 mb-3">
+        <a href="{{ url_for('input_finance') }}" class="btn btn-outline-light w-100 p-3 text-start">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-money-bill-wave fa-2x me-3"></i>
+                <div>
+                    <h5 class="mb-0">Input Keuangan</h5>
+                    <small class="text-muted">Catat pendapatan/pengeluaran</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4 mb-3">
+        <a href="{{ url_for('view_calendar') }}" class="btn btn-outline-light w-100 p-3 text-start">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-calendar-alt fa-2x me-3"></i>
+                <div>
+                    <h5 class="mb-0">Lihat Kalender</h5>
+                    <small class="text-muted">Kalender transaksi & libur nasional</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4 mb-3">
+        <a href="{{ url_for('payment_status') }}" class="btn btn-outline-light w-100 p-3 text-start">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-money-check-alt fa-2x me-3"></i>
+                <div>
+                    <h5 class="mb-0">Status Pembayaran</h5>
+                    <small class="text-muted">Pantau keterlambatan bayar sewa</small>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Link to reports -->
+<div class="row">
+    <div class="col-12 text-center">
+        <p>Untuk laporan detail, silakan lihat <a href="{{ url_for('financial_stats') }}">Statistik Keuangan</a> atau <a href="{{ url_for('room_stats') }}">Statistik Kamar</a>.</p>
+    </div>
+</div>
+{% endblock %}

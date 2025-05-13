@@ -1,0 +1,156 @@
+# Sistem Pencatatan Penginapan/Kos (Kerangka Awal - Flask)
+
+from flask import Flask, request, redirect, url_for, session
+from datetime import datetime
+import matplotlib.pyplot as plt
+import io
+import base64
+import calendar
+from collections import defaultdict
+
+app = Flask(__name__)
+app.secret_key = 'kuncirahasiacharlie'  # untuk login session
+
+# Simulasi database
+pengguna = {
+    'karawang1': '1234',
+    'karawang2': '1234',
+    'bandung': '1234',
+    'admin': 'admin123'
+}
+data_pengisian = []  # data bulanan dari pengelola (bukan harian)  # data harian dari pengelola
+buku_kas = []  # data kas masuk dan keluar
+
+# Hari libur nasional manual (contoh)
+hari_libur_nasional = {
+    '2025-01-01': 'Tahun Baru Masehi',
+    '2025-03-31': 'Hari Raya Nyepi',
+    '2025-04-18': 'Wafat Isa Almasih',
+    '2025-05-01': 'Hari Buruh',
+    '2025-05-29': 'Kenaikan Isa Almasih',
+    '2025-06-01': 'Hari Lahir Pancasila',
+    '2025-06-06': 'Hari Raya Idul Adha',
+    '2025-07-17': 'Tahun Baru Islam',
+    '2025-08-17': 'Hari Kemerdekaan RI',
+    '2025-10-06': 'Maulid Nabi Muhammad SAW',
+    '2025-12-25': 'Hari Natal'
+}
+
+# Fungsi bantu: format angka ke rupiah
+def format_rupiah(angka):
+    return f"Rp {angka:,.0f}".replace(",", ".")
+
+# Halaman Grafik Perbandingan Pendapatan vs Pengeluaran
+@app.route('/grafik-perbandingan')
+def grafik_perbandingan():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    pendapatan_bulanan = defaultdict(int)
+    pengeluaran_bulanan = defaultdict(int)
+    semua_bulan = set()
+
+    for item in buku_kas:
+        tanggal_obj = datetime.strptime(item['tanggal'], '%Y-%m-%d')
+        bulan = tanggal_obj.strftime('%Y-%m')
+        semua_bulan.add(bulan)
+        if item['tipe'] == 'masuk':
+            pendapatan_bulanan[bulan] += item['jumlah']
+        elif item['tipe'] == 'keluar':
+            pengeluaran_bulanan[bulan] += item['jumlah']
+
+    bulan_list = sorted(list(semua_bulan))
+    pendapatan_list = [pendapatan_bulanan[bln] for bln in bulan_list]
+    pengeluaran_list = [pengeluaran_bulanan[bln] for bln in bulan_list]
+
+    x = range(len(bulan_list))
+    plt.figure(figsize=(10, 4))
+    plt.bar(x, pendapatan_list, width=0.4, label='Pendapatan', align='center', color='green')
+    plt.bar([i + 0.4 for i in x], pengeluaran_list, width=0.4, label='Pengeluaran', align='center', color='orange')
+    plt.xticks([i + 0.2 for i in x], bulan_list, rotation=45)
+    plt.title('Perbandingan Pendapatan dan Pengeluaran Bulanan')
+    plt.xlabel('Bulan')
+    plt.ylabel('Jumlah (Rp)')
+    plt.legend()
+    plt.tight_layout()
+
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    plot_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
+
+    return f'<h2>Grafik Perbandingan Pendapatan vs Pengeluaran</h2><img src="data:image/png;base64,{plot_url}"><br><a href="/input">Kembali</a>'
+
+# Form input bulanan dengan tipe kamar
+@app.route('/input-kamar', methods=['GET', 'POST'])
+def input_kamar():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        entri = {
+            'bulan': request.form['bulan'],
+            'lokasi': request.form['lokasi'],
+            'tipe_kamar': request.form['tipe_kamar'],
+            'jumlah_terisi': int(request.form['jumlah_terisi']),
+            'catatan': request.form['catatan']
+        }
+        data_pengisian.append(entri)
+        return "Data bulanan berhasil disimpan. <a href='/input-kamar'>Input lagi</a> atau <a href='/grafik-kamar'>Lihat grafik tipe kamar</a>"
+
+    return '''
+        <h2>Input Data Bulanan Kamar</h2>
+        <form method="post">
+            Bulan (YYYY-MM): <input type="text" name="bulan"><br>
+            Lokasi:
+            <select name="lokasi">
+                <option value="KOS ANTAPANI">KOS ANTAPANI</option>
+                <option value="KOS GURO">KOS GURO</option>
+                <option value="KOS PESONA GRIYA">KOS PESONA GRIYA</option>
+            </select><br>
+            Tipe Kamar:
+            <select name="tipe_kamar">
+                <option value="Standard">Standard</option>
+                <option value="Deluxe">Deluxe</option>
+                <option value="Eksekutif">Eksekutif</option>
+                <option value="Studio">Studio</option>
+            </select><br>
+            Jumlah Kamar Terisi: <input type="number" name="jumlah_terisi"><br>
+            Catatan: <input type="text" name="catatan"><br>
+            <input type="submit" value="Simpan">
+        </form>
+    '''
+
+# Grafik permintaan berdasarkan tipe kamar
+@app.route('/grafik-kamar')
+def grafik_kamar():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    grafik_data = defaultdict(int)
+    for d in data_pengisian:
+        key = f"{d['bulan']} - {d['tipe_kamar']}"
+        grafik_data[key] += d['jumlah_terisi']
+
+    labels = sorted(grafik_data.keys())
+    values = [grafik_data[k] for k in labels]
+
+    plt.figure(figsize=(12, 5))
+    plt.bar(labels, values, color='purple')
+    plt.title('Permintaan Tipe Kamar per Bulan')
+    plt.xlabel('Bulan - Tipe Kamar')
+    plt.ylabel('Jumlah Terisi')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    plot_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
+
+    return f'<h2>Grafik Permintaan Tipe Kamar</h2><img src="data:image/png;base64,{plot_url}"><br><a href="/input-kamar">Input Kamar Bulanan</a>'
+
+# Jalankan aplikasi
+if __name__ == '__main__':
+    app.run(debug=True)

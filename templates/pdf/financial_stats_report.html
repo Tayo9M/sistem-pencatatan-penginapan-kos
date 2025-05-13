@@ -1,0 +1,81 @@
+{% extends "pdf/pdf_layout.html" %}
+
+{% block content %}
+<h2>Laporan Statistik Keuangan</h2>
+<p>Tahun: {{ year }}</p>
+
+<div class="summary">
+    <h3>Ringkasan Tahunan</h3>
+    <table>
+        <tr>
+            <th>Total Pemasukan</th>
+            <td style="text-align: right;">Rp {{ "{:,}".format(stats_data.yearly_summary.total_income).replace(',', '.') }}</td>
+        </tr>
+        <tr>
+            <th>Total Pengeluaran</th>
+            <td style="text-align: right;">Rp {{ "{:,}".format(stats_data.yearly_summary.total_expense).replace(',', '.') }}</td>
+        </tr>
+        <tr>
+            <th>Keuntungan Bersih</th>
+            <td style="text-align: right; {% if stats_data.yearly_summary.net_profit < 0 %}color: red;{% endif %}">
+                Rp {{ "{:,}".format(stats_data.yearly_summary.net_profit).replace(',', '.') }}
+            </td>
+        </tr>
+    </table>
+</div>
+
+<h3>Analisis Bulanan</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Bulan</th>
+            <th>Pemasukan</th>
+            <th>Pengeluaran</th>
+            <th>Keuntungan</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for month_data in stats_data.monthly_data %}
+        <tr>
+            <td>{{ month_data.month_name }}</td>
+            <td style="text-align: right;">Rp {{ "{:,}".format(month_data.income).replace(',', '.') }}</td>
+            <td style="text-align: right;">Rp {{ "{:,}".format(month_data.expense).replace(',', '.') }}</td>
+            <td style="text-align: right; {% if month_data.profit < 0 %}color: red;{% endif %}">
+                Rp {{ "{:,}".format(month_data.profit).replace(',', '.') }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="summary">
+    <h3>Pemasukan berdasarkan Kategori</h3>
+    <table>
+        {% for category, amount in stats_data.income_by_category.items() %}
+        <tr>
+            <th>{{ category }}</th>
+            <td style="text-align: right;">Rp {{ "{:,}".format(amount).replace(',', '.') }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="summary">
+    <h3>Pengeluaran berdasarkan Kategori</h3>
+    <table>
+        {% for category, amount in stats_data.expense_by_category.items() %}
+        <tr>
+            <th>{{ category }}</th>
+            <td style="text-align: right;">Rp {{ "{:,}".format(amount).replace(',', '.') }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="summary">
+    <h3>Analisis Tren</h3>
+    <p>Bulan dengan Pemasukan Tertinggi: {{ stats_data.trends.highest_income_month }} (Rp {{ "{:,}".format(stats_data.trends.highest_income_amount).replace(',', '.') }})</p>
+    <p>Bulan dengan Pengeluaran Tertinggi: {{ stats_data.trends.highest_expense_month }} (Rp {{ "{:,}".format(stats_data.trends.highest_expense_amount).replace(',', '.') }})</p>
+    <p>Bulan dengan Keuntungan Tertinggi: {{ stats_data.trends.highest_profit_month }} (Rp {{ "{:,}".format(stats_data.trends.highest_profit_amount).replace(',', '.') }})</p>
+</div>
+{% endblock %}

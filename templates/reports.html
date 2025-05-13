@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 mb-4">
+            <i class="fas fa-chart-bar"></i> Laporan
+        </h1>
+        <p class="lead">Pilih jenis laporan yang ingin Anda lihat.</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Room Statistics Card -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow h-100">
+            <div class="card-body text-center p-5">
+                <div class="display-1 text-info mb-4">
+                    <i class="fas fa-bed"></i>
+                </div>
+                <h3 class="card-title mb-3">Statistik Kamar</h3>
+                <p class="card-text">Lihat laporan tentang jumlah kamar, tingkat hunian, dan perbandingan berdasarkan tipe kamar.</p>
+                <div class="d-grid gap-2 mt-4">
+                    <a href="{{ url_for('room_stats') }}" class="btn btn-info btn-lg">
+                        <i class="fas fa-chart-line"></i> Lihat Statistik Kamar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Financial Statistics Card -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow h-100">
+            <div class="card-body text-center p-5">
+                <div class="display-1 text-success mb-4">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <h3 class="card-title mb-3">Statistik Keuangan</h3>
+                <p class="card-text">Lihat laporan tentang pendapatan, pengeluaran, dan perbandingan keuangan berdasarkan kategori.</p>
+                <div class="d-grid gap-2 mt-4">
+                    <a href="{{ url_for('financial_stats') }}" class="btn btn-success btn-lg">
+                        <i class="fas fa-chart-pie"></i> Lihat Statistik Keuangan
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Calendar View Card -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow h-100">
+            <div class="card-body text-center p-5">
+                <div class="display-1 text-warning mb-4">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h3 class="card-title mb-3">Kalender Transaksi</h3>
+                <p class="card-text">Lihat kalender dengan hari libur nasional dan catatan transaksi harian.</p>
+                <div class="d-grid gap-2 mt-4">
+                    <a href="{{ url_for('view_calendar') }}" class="btn btn-warning btn-lg">
+                        <i class="fas fa-calendar-day"></i> Lihat Kalender
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Data Input Card -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow h-100">
+            <div class="card-body text-center p-5">
+                <div class="display-1 text-danger mb-4">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <h3 class="card-title mb-3">Input Data</h3>
+                <p class="card-text">Tambahkan data hunian kamar dan transaksi keuangan.</p>
+                <div class="row g-2 mt-4">
+                    <div class="col-6 d-grid">
+                        <a href="{{ url_for('input_occupancy') }}" class="btn btn-outline-danger">
+                            <i class="fas fa-home"></i> Input Hunian
+                        </a>
+                    </div>
+                    <div class="col-6 d-grid">
+                        <a href="{{ url_for('input_finance') }}" class="btn btn-outline-danger">
+                            <i class="fas fa-money-bill-wave"></i> Input Keuangan
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

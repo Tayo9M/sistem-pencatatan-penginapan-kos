@@ -1,0 +1,173 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 mb-4">
+            <i class="fas fa-money-bill-wave"></i> Input Data Keuangan
+        </h1>
+        <p class="lead">Gunakan form ini untuk mencatat pendapatan dan pengeluaran.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-pencil-alt"></i> Form Input Keuangan</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('input_finance') }}">
+                    <div class="mb-3">
+                        <label for="transaction_date" class="form-label">Tanggal Transaksi</label>
+                        <input type="date" class="form-control" id="transaction_date" name="transaction_date" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="property_id" class="form-label">Lokasi</label>
+                        <select class="form-select" id="property_id" name="property_id" required>
+                            <option value="" selected disabled>Pilih lokasi...</option>
+                            {% for property in properties %}
+                            <option value="{{ property.id }}">{{ property.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="transaction_type" class="form-label">Jenis Transaksi</label>
+                        <select class="form-select" id="transaction_type" name="transaction_type" required>
+                            <option value="" selected disabled>Pilih jenis transaksi...</option>
+                            <option value="income">Pendapatan</option>
+                            <option value="expense">Pengeluaran</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Kategori</label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="" selected disabled>Pilih kategori...</option>
+                            <!-- Income categories -->
+                            <optgroup label="Kategori Pendapatan" id="income_categories">
+                                <option value="Pembayaran Sewa">Pembayaran Sewa</option>
+                                <option value="Deposit">Deposit</option>
+                                <option value="Denda">Denda</option>
+                                <option value="Layanan Tambahan">Layanan Tambahan</option>
+                                <option value="Lainnya (Pendapatan)">Lainnya</option>
+                            </optgroup>
+                            <!-- Expense categories -->
+                            <optgroup label="Kategori Pengeluaran" id="expense_categories">
+                                <option value="Listrik">Listrik</option>
+                                <option value="Air">Air</option>
+                                <option value="Internet">Internet</option>
+                                <option value="Perawatan">Perawatan</option>
+                                <option value="Perbaikan">Perbaikan</option>
+                                <option value="Gaji Karyawan">Gaji Karyawan</option>
+                                <option value="Peralatan">Peralatan</option>
+                                <option value="Pajak">Pajak</option>
+                                <option value="Lainnya (Pengeluaran)">Lainnya</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Jumlah</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="text" class="form-control currency-input" id="amount" name="amount" placeholder="" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Deskripsi</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Simpan Transaksi
+                        </button>
+                        <a href="{{ url_for('manage_finance') }}" class="btn btn-secondary mt-2">
+                            <i class="fas fa-list"></i> Lihat dan Kelola Data Keuangan
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4 border-0 shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Petunjuk</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Jenis Transaksi:</strong></p>
+                <ul>
+                    <li><strong>Pendapatan:</strong> Uang masuk (sewa, deposit, dll.)</li>
+                    <li><strong>Pengeluaran:</strong> Uang keluar (utilitas, perawatan, dll.)</li>
+                </ul>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Pastikan jumlah diisi dengan format angka yang benar.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Statistik</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">Lihat statistik dan laporan keuangan:</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('financial_stats') }}" class="btn btn-outline-success">
+                        <i class="fas fa-chart-bar"></i> Statistik Keuangan
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set current date as default
+    document.getElementById('transaction_date').valueAsDate = new Date();
+    
+    // Show/hide categories based on transaction type
+    const transactionTypeSelect = document.getElementById('transaction_type');
+    const incomeCategories = document.getElementById('income_categories');
+    const expenseCategories = document.getElementById('expense_categories');
+    const categorySelect = document.getElementById('category');
+    
+    transactionTypeSelect.addEventListener('change', function() {
+        // Reset the category selection
+        categorySelect.value = '';
+        
+        // Show the appropriate category group
+        if (this.value === 'income') {
+            incomeCategories.style.display = 'block';
+            expenseCategories.style.display = 'none';
+        } else if (this.value === 'expense') {
+            incomeCategories.style.display = 'none';
+            expenseCategories.style.display = 'block';
+        }
+    });
+    
+    // Format currency input
+    const amountInput = document.getElementById('amount');
+    amountInput.addEventListener('input', function(e) {
+        // Remove non-numeric characters
+        let value = this.value.replace(/[^\d]/g, '');
+        
+        // Format with thousand separators
+        if (value !== '') {
+            value = parseInt(value, 10).toLocaleString('id-ID');
+        }
+        
+        this.value = value;
+    });
+});
+</script>
+{% endblock %}

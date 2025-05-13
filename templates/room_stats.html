@@ -1,0 +1,145 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 mb-4">
+            <i class="fas fa-chart-bar"></i> Statistik Kamar
+        </h1>
+        <p class="lead">Grafik dan statistik tentang kamar dan tingkat hunian.</p>
+    </div>
+</div>
+
+<!-- Form Ekspor PDF -->
+<div class="card border-0 shadow mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-file-pdf"></i> Ekspor Statistik Kamar ke PDF</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('export_room_stats_pdf') }}" method="get" target="_blank">
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="form-group mb-3">
+                        <label for="property_id">Properti:</label>
+                        <select name="property_id" id="property_id" class="form-select" required>
+                            {% for property in properties %}
+                                <option value="{{ property.id }}" {% if selected_property_id == property.id %}selected{% endif %}>{{ property.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group mb-3">
+                        <label for="month">Bulan:</label>
+                        <input type="month" id="month" name="month" class="form-control" 
+                               value="{{ month }}" required>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="d-flex w-100 gap-2 mb-3">
+                        <button type="submit" class="btn btn-success flex-fill">
+                            <i class="fas fa-download"></i> Unduh PDF
+                        </button>
+                        <button type="submit" class="btn btn-primary flex-fill" formaction="{{ url_for('export_room_stats_pdf', preview='true') }}" formtarget="_blank">
+                            <i class="fas fa-eye"></i> Lihat PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Room Count by Type Chart -->
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Jumlah Kamar per Tipe</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ room_stats_plot }}" alt="Room Statistics Chart" class="img-fluid">
+                </div>
+                
+                <div class="table-responsive mt-4">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Tipe Kamar</th>
+                                <th>Jumlah</th>
+                                <th>Persentase</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set total_rooms = room_types|sum(attribute='1') %}
+                            {% for type, count in room_types %}
+                            <tr>
+                                <td>{{ type }}</td>
+                                <td>{{ count }}</td>
+                                <td>{{ (count / total_rooms * 100)|round(1) }}%</td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="table-active">
+                                <td><strong>Total</strong></td>
+                                <td><strong>{{ total_rooms }}</strong></td>
+                                <td><strong>100%</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Occupancy Rate Chart -->
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Tingkat Hunian per Bulan dan Tipe Kamar</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <img src="data:image/png;base64,{{ occupancy_plot }}" alt="Occupancy Rate Chart" class="img-fluid">
+                </div>
+                
+                <div class="table-responsive mt-4">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Tipe Kamar</th>
+                                {% for month in months %}
+                                <th>Bulan {{ month }}</th>
+                                {% endfor %}
+                                <th>Rata-rata</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for room_type in occupancy_data %}
+                            <tr>
+                                <td>{{ room_type }}</td>
+                                {% for rate in occupancy_data[room_type] %}
+                                <td>{{ rate|round(1) }}%</td>
+                                {% endfor %}
+                                <td><strong>{{ (occupancy_data[room_type]|sum / occupancy_data[room_type]|length)|round(1) }}%</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <a href="{{ url_for('input_occupancy') }}" class="btn btn-primary me-2">
+            <i class="fas fa-plus-circle"></i> Input Data Hunian
+        </a>
+        <a href="{{ url_for('financial_stats') }}" class="btn btn-success">
+            <i class="fas fa-chart-pie"></i> Lihat Statistik Keuangan
+        </a>
+    </div>
+</div>
+{% endblock %}

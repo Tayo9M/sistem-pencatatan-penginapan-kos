@@ -1,0 +1,131 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 mb-4">
+            <i class="fas fa-money-bill-wave"></i> Kelola Data Keuangan
+        </h1>
+        {% if current_user.is_admin %}
+            <p class="lead">Lihat, edit, dan hapus data keuangan semua properti.</p>
+        {% else %}
+            {% if properties|length == 1 %}
+                <p class="lead">Lihat, edit, dan hapus data keuangan properti <strong>{{ properties[0].name }}</strong>.</p>
+            {% else %}
+                <p class="lead">Lihat, edit, dan hapus data keuangan untuk {{ properties|length }} properti yang anda kelola:</p>
+                <ul>
+                    {% for property in properties %}
+                        <li><strong>{{ property.name }}</strong></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Form Ekspor PDF -->
+<div class="card border-0 shadow mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-file-pdf"></i> Ekspor Data ke PDF</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('export_finance_pdf') }}" method="get" target="_blank">
+            <input type="hidden" name="property_id" value="{{ selected_property_id }}">
+            
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="form-group mb-3">
+                        <label for="start_date">Dari Tanggal:</label>
+                        <input type="date" id="start_date" name="start_date" class="form-control" 
+                               value="{{ start_date.strftime('%Y-%m-%d') if start_date else now.replace(day=1).strftime('%Y-%m-%d') }}" required>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group mb-3">
+                        <label for="end_date">Sampai Tanggal:</label>
+                        <input type="date" id="end_date" name="end_date" class="form-control" 
+                               value="{{ end_date.strftime('%Y-%m-%d') if end_date else now.strftime('%Y-%m-%d') }}" required>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="d-flex w-100 gap-2 mb-3">
+                        <button type="submit" class="btn btn-success flex-fill">
+                            <i class="fas fa-download"></i> Unduh PDF
+                        </button>
+                        <button type="submit" class="btn btn-primary flex-fill" formaction="{{ url_for('export_finance_pdf', preview='true') }}" formtarget="_blank">
+                            <i class="fas fa-eye"></i> Lihat PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow">
+    <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list"></i> Daftar Transaksi Keuangan</h5>
+            <a href="{{ url_for('input_finance') }}" class="btn btn-light btn-sm">
+                <i class="fas fa-plus-circle"></i> Tambah Transaksi Baru
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Properti</th>
+                        <th>Jenis</th>
+                        <th>Kategori</th>
+                        <th>Jumlah</th>
+                        <th>Deskripsi</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if records %}
+                        {% for record, property in records %}
+                            <tr class="{% if record.transaction_type == 'income' %}table-success{% else %}table-warning{% endif %}">
+                                <td>{{ record.transaction_date.strftime('%d-%m-%Y') }}</td>
+                                <td>{{ property.name }}</td>
+                                <td>
+                                    {% if record.transaction_type == 'income' %}
+                                        <span class="badge bg-success">Pendapatan</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pengeluaran</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ record.category }}</td>
+                                <td>{{ record.amount|rupiah }}</td>
+                                <td>{{ record.description or '-' }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('delete_finance', record_id=record.id) }}" onsubmit="return confirm('Anda yakin ingin menghapus data ini?');" style="display: inline;">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-trash-alt"></i> HAPUS
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">Belum ada data keuangan yang diinput.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Anda dapat menghapus data dengan menekan tombol <strong>Hapus</strong> pada baris data yang ingin dihapus.
+        </div>
+    </div>
+</div>
+{% endblock %}

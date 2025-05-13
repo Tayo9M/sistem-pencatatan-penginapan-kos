@@ -1,0 +1,104 @@
+/* Custom CSS to complement Bootstrap */
+
+/* Override fonts for better readability */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Calendar styling */
+.calendar-day {
+    height: 120px;
+    border: 1px solid var(--bs-gray-700);
+    padding: 5px;
+    position: relative;
+}
+
+.calendar-day.empty {
+    background-color: var(--bs-gray-800);
+}
+
+.calendar-day .day-number {
+    font-weight: bold;
+    position: absolute;
+    top: 5px;
+    right: 8px;
+}
+
+.calendar-day.today {
+    border: 2px solid var(--bs-primary);
+}
+
+.calendar-day.holiday {
+    background-color: rgba(var(--bs-danger-rgb), 0.2);
+}
+
+.holiday-name {
+    font-size: 0.8rem;
+    color: var(--bs-danger);
+    font-weight: bold;
+}
+
+.finance-entry {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+    padding: 2px;
+    border-radius: 3px;
+}
+
+.finance-entry.income {
+    background-color: rgba(var(--bs-success-rgb), 0.2);
+    color: var(--bs-success);
+}
+
+.finance-entry.expense {
+    background-color: rgba(var(--bs-warning-rgb), 0.2);
+    color: var(--bs-warning);
+}
+
+/* Custom card styles */
+.card-dashboard {
+    transition: transform 0.3s;
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-dashboard:hover {
+    transform: translateY(-5px);
+}
+
+/* Stats colors */
+.text-income {
+    color: var(--bs-success);
+}
+
+.text-expense {
+    color: var(--bs-warning);
+}
+
+.text-profit {
+    color: var(--bs-info);
+}
+
+/* Make charts responsive */
+.chart-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.chart-container img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+    .calendar-day {
+        height: 80px;
+    }
+    
+    .finance-entry {
+        font-size: 0.7rem;
+    }
+}

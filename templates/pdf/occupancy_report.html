@@ -1,0 +1,50 @@
+{% extends "pdf/pdf_layout.html" %}
+
+{% block content %}
+<h2>Laporan Data Hunian</h2>
+<p>Periode: {% if start_month == end_month %}{{ start_month }}{% else %}{{ start_month }} s/d {{ end_month }}{% endif %}</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>No. Kamar</th>
+            <th>Bulan</th>
+            <th>Nama Penghuni</th>
+            <th>Status Pembayaran</th>
+            <th>Tanggal Bayar</th>
+            <th>Jumlah Bulan</th>
+            <th>Dibayar Hingga</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in occupancy_data %}
+        <tr>
+            <td>{{ record.room.number }}</td>
+            <td>{{ record.month }}</td>
+            <td>{{ record.tenant_name }}</td>
+            <td class="{% if record.payment_status == 'paid' %}paid{% elif record.payment_status == 'late' %}late{% else %}unpaid{% endif %}">
+                {% if record.payment_status == 'paid' %}Lunas{% elif record.payment_status == 'late' %}Terlambat{% else %}Belum Bayar{% endif %}
+            </td>
+            <td>{{ record.payment_date.strftime('%d-%m-%Y') if record.payment_date else '-' }}</td>
+            <td>{{ record.payment_months }}</td>
+            <td>{{ record.get_paid_until() }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="summary">
+    <h3>Ringkasan</h3>
+    <p>Total Kamar Terisi: {{ occupancy_data|length }}</p>
+    <p>Status Pembayaran:</p>
+    <ul>
+        {% set paid_count = occupancy_data|selectattr('payment_status', 'equalto', 'paid')|list|length %}
+        {% set unpaid_count = occupancy_data|selectattr('payment_status', 'equalto', 'unpaid')|list|length %}
+        {% set late_count = occupancy_data|selectattr('payment_status', 'equalto', 'late')|list|length %}
+        
+        <li>Lunas: {{ paid_count }} kamar</li>
+        <li>Belum Bayar: {{ unpaid_count }} kamar</li>
+        <li>Terlambat: {{ late_count }} kamar</li>
+    </ul>
+</div>
+{% endblock %}
